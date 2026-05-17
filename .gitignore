@@ -1,0 +1,7 @@
+data/*.log
+data/*.log.*
+data/*.sincedb
+.env
+.DS_Store
+__pycache__/
+*.pyc

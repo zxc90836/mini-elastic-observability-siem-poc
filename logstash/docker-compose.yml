@@ -1,0 +1,93 @@
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.17.4
+    container_name: mini-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms768m -Xmx768m
+    ports:
+      - "19200:9200"
+    volumes:
+      - esdata-mini:/usr/share/elasticsearch/data
+    networks:
+      - mini-elastic-net
+    restart: unless-stopped
+    mem_limit: 1400m
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.17.4
+    container_name: mini-kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "15601:5601"
+    depends_on:
+      - elasticsearch
+    networks:
+      - mini-elastic-net
+    restart: unless-stopped
+    mem_limit: 900m
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.17.4
+    container_name: mini-logstash
+    volumes:
+      - ./logstash/pipeline.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+      - ./data:/usr/share/logstash/data:ro
+      - logstash-sincedb:/usr/share/logstash/sincedb
+    environment:
+      - LS_JAVA_OPTS=-Xms256m -Xmx256m
+    depends_on:
+      - elasticsearch
+    networks:
+      - mini-elastic-net
+    restart: unless-stopped
+    mem_limit: 600m
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  fake-log-generator:
+    build:
+      context: ./generator
+    container_name: mini-fake-log-generator
+    volumes:
+      - ./data:/app/data
+    environment:
+      - DATA_DIR=/app/data
+      - INTERVAL_SECONDS=10
+      - LOG_MAX_BYTES=5242880
+      - LOG_BACKUP_COUNT=3
+    depends_on:
+      - logstash
+    networks:
+      - mini-elastic-net
+    restart: unless-stopped
+    mem_limit: 128m
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  esdata-mini:
+  logstash-sincedb:
+
+networks:
+  mini-elastic-net:
+    name: mini-elastic-net
