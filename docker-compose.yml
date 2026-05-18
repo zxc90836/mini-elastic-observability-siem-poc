@@ -45,7 +45,8 @@ services:
     container_name: mini-logstash
     volumes:
       - ./logstash/pipeline.conf:/usr/share/logstash/pipeline/logstash.conf:ro
-      - ./data:/usr/share/logstash/data:ro
+      - ./data:/demo-logs:ro
+      - logstash-data:/usr/share/logstash/data
       - logstash-sincedb:/usr/share/logstash/sincedb
     environment:
       - LS_JAVA_OPTS=-Xms256m -Xmx256m
@@ -87,7 +88,7 @@ services:
 volumes:
   esdata-mini:
   logstash-sincedb:
-
+  logstash-data:
 networks:
   mini-elastic-net:
     name: mini-elastic-net

@@ -83,7 +83,7 @@ def generate_system_metric() -> dict:
     return {
         "@timestamp": utc_now(),
         "source_type": "system_metric",
-        "host": random.choice(hosts),
+        "host_name": random.choice(hosts),
         "cpu_usage": cpu_usage,
         "memory_usage": memory_usage,
         "disk_usage": disk_usage,
